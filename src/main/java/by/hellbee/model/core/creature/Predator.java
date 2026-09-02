@@ -1,9 +1,12 @@
 package by.hellbee.model.core.creature;
 
+import by.hellbee.map.Cell;
+import by.hellbee.map.Map;
 import by.hellbee.model.core.Creature;
 import by.hellbee.model.factory.Sprite;
 
-// todo Доделать класс
+import java.util.concurrent.ThreadLocalRandom;
+
 public class Predator extends Creature {
     private final int damage;
 
@@ -13,10 +16,22 @@ public class Predator extends Creature {
     }
 
 
-    public void attackHerbivore(Herbivore herbivore) {
+    public void attackHerbivore(Map map, Cell currentCell, Cell targetCell) {
+        var neighborEntity = map.getEntityOnCell(targetCell);
 
-        herbivore.setHealth(herbivore.getHealth() - this.damage);
-        // доделать
+        if (neighborEntity instanceof Herbivore herbivore) {
+            herbivore.setHealth(herbivore.getHealth() - this.damage);
+
+            if (herbivore.getHealth() <= 0) {
+
+                int heal = ThreadLocalRandom.current().nextInt(1, 3);
+
+                map.removeEntity(targetCell);
+                map.moveEntity(currentCell, targetCell);
+
+                super.setHealth(Math.min(super.getHealth() + heal, super.getMaxHealth()));
+            }
+        }
     }
 
     @Override

@@ -2,19 +2,23 @@ package by.hellbee.model.core;
 
 import by.hellbee.map.Cell;
 import by.hellbee.map.Map;
+import by.hellbee.model.core.creature.Herbivore;
+import by.hellbee.model.core.creature.Predator;
+import by.hellbee.model.core.entity.Grass;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-// todo Доделать класс
 public abstract class Creature extends Entity {
 
     private final int speed;
     private int health;
+    private final int maxHealth;
     private int moveCount = 0;
 
     public Creature(int speed, int health) {
         this.speed = speed;
         this.health = health;
+        this.maxHealth = health;
         this.resetMoveCount();
     }
 
@@ -27,12 +31,39 @@ public abstract class Creature extends Entity {
 
             var walkableNeighbor = map.getTargetCell(currentCell);
 
-            map.moveEntity(currentCell, walkableNeighbor);
-            currentCell = walkableNeighbor;
-            this.decreaseMoves();
+            Entity currentEntity = map.getEntityOnCell(currentCell);
+
+            if (currentEntity instanceof Herbivore herbivore
+                    && map.getEntityOnCell(walkableNeighbor) instanceof Grass) {
+                herbivore.eatResource(map, currentCell, walkableNeighbor);
+                currentCell = walkableNeighbor;
+
+                this.decreaseMoves();
+            } else if (currentEntity instanceof Predator predator
+                    && map.getEntityOnCell(walkableNeighbor) instanceof Herbivore) {
+                predator.attackHerbivore(map, currentCell, walkableNeighbor);
+
+                if (map.getEntityOnCell(walkableNeighbor) == predator) {
+                    currentCell = walkableNeighbor;
+
+                    this.decreaseMoves();
+                    continue;
+                }
+
+                this.decreaseMoves();
+            } else if (map.isCellEmpty(walkableNeighbor)) {
+                map.moveEntity(currentCell, walkableNeighbor);
+                currentCell = walkableNeighbor;
+
+                this.decreaseMoves();
+            } else {
+                break;
+            }
+
         }
     }
 
+    // for debug
     @Override
     public String toString() {
         return "Creature{" +
@@ -57,6 +88,10 @@ public abstract class Creature extends Entity {
 
     public void setHealth(int health) {
         this.health = health;
+    }
+
+    public int getMaxHealth() {
+        return maxHealth;
     }
 
     public int getHealth() {

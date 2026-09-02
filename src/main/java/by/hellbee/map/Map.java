@@ -52,10 +52,6 @@ public class Map {
         return null;
     }
 
-    public List<Cell> getWalkableNeighborCells(Cell from) {
-        return null;
-    }
-
     public List<Entity> getEntities() {
         return new ArrayList<>(entities.values());
     }
