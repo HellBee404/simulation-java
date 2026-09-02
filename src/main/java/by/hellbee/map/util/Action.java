@@ -1,10 +1,13 @@
-package by.hellbee.map;
+package by.hellbee.map.util;
 
-import by.hellbee.model.EntityFactory;
+import by.hellbee.map.Cell;
+import by.hellbee.map.Map;
 import by.hellbee.model.core.Entity;
+import by.hellbee.model.factory.EntityFactory;
 
 import java.util.Random;
 
+// todo подумать о том, чтобы сделать это в многопоточке
 public class Action {
 
     private final Random random = new Random();

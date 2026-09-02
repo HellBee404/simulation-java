@@ -1,25 +1,30 @@
 package by.hellbee;
 
-import by.hellbee.map.Action;
 import by.hellbee.map.Map;
-import by.hellbee.map.Render;
-import by.hellbee.map.RendererService;
+import by.hellbee.map.render.Render;
+import by.hellbee.map.render.RendererService;
+import by.hellbee.map.util.Action;
+import by.hellbee.model.core.entity.Grass;
+import by.hellbee.model.core.entity.Rock;
+import by.hellbee.model.core.entity.Tree;
 
 public class Main {
 
     public static void main(String[] args) {
-        while (true) {
-            Action action = new Action();
-            action.initActions();
-            Map map = action.getMap();
-            RendererService render = new Render();
-            render.render(map);
-            System.out.println();
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+        Action action = new Action();
+        action.initActions();
+        Map map = action.getMap();
+        RendererService renderer = new Render();
+
+        renderer.render(map);
+        System.out.println();
+
+        for (int i = 0; i < map.getEntities().size(); i++) {
+            var entity = map.getEntities().get(i);
+            if (entity instanceof Grass || entity instanceof Rock || entity instanceof Tree) {
+                continue;
             }
+            System.out.println(entity.toString());
         }
     }
 }

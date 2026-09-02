@@ -1,4 +1,4 @@
-package by.hellbee.model;
+package by.hellbee.model.factory;
 
 public record Sprite() {
     // Creatures

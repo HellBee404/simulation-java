@@ -1,19 +1,18 @@
 package by.hellbee.map;
 
 import by.hellbee.model.core.Entity;
+import by.hellbee.model.core.entity.Rock;
+import by.hellbee.model.core.entity.Tree;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-// todo Доделать класс
-// todo написать метод для проверки клетки за границей карты isWithin()
-// todo написать метод для валидации isValid()
-// todo написать метод isCellWalkable() для алгоритма поиска пути
+// TODO Доделать класс
 public class Map {
 
-    private final int rows;
     private final int columns;
+    private final int rows;
 
     private final HashMap<Cell, Entity> entities = new HashMap<>();
 
@@ -31,18 +30,9 @@ public class Map {
     }
 
     public void moveEntity(Cell from, Cell to) {
-
-///////////////////////////////////////////////// ПЕРЕДЕЛАТЬ ВАЛИДАЦИЮ /////////////////////////////////////////////////
-        if (from == null) {
-            throw new IllegalArgumentException("Нельзя передвинуть сущность из несуществующей клетки.");
+        if (!isWalkable(from, to)) {
+            throw new IllegalArgumentException("Невозможно передвинуть сущность с клетки " + from + " на клетку " + to);
         }
-        if (to == null) {
-            throw new IllegalArgumentException("Нельзя передвинуть сущность в несуществующую клетку.");
-        }
-        if (from.equals(to)) {
-            throw new IllegalArgumentException("Клетка " + to + " уже занята.");
-        }
-///////////////////////////////////////////////// ПЕРЕДЕЛАТЬ ВАЛИДАЦИЮ /////////////////////////////////////////////////
 
         Entity entity = getEntityOnCell(from);
         if (entity == null) {
@@ -53,8 +43,17 @@ public class Map {
         setEntity(to, entity);
 
         if (getEntityOnCell(to).equals(entity)) {
-            System.out.println("Сущность успешно передвинулась из " + from + " на " + to);
+            System.out.println("Сущность " + entity + " успешно передвинулась из клетки " + from + " на клетку " + to);
         }
+    }
+
+    // TODO написать метод getWalkableNeighborCells(Cell from) для нахождения валидных соседей для алгоритма поиска пути
+    public Cell getTargetCell(Cell currentCell) {
+        return null;
+    }
+
+    public List<Cell> getWalkableNeighborCells(Cell from) {
+        return null;
     }
 
     public List<Entity> getEntities() {
@@ -75,5 +74,20 @@ public class Map {
 
     public Entity getEntityOnCell(Cell cell) {
         return entities.get(cell);
+    }
+
+    public boolean isWalkable(Cell from, Cell to) {
+        return (isValid(to) && !to.equals(from))
+                && !((getEntityOnCell(to) instanceof Rock))
+                && !(getEntityOnCell(to) instanceof Tree);
+    }
+
+    private boolean isValid(Cell cell) {
+        return cell != null && isWithin(cell);
+    }
+
+    private boolean isWithin(Cell destination) {
+        return (destination.x() >= 0 && destination.x() < columns)
+                && (destination.y() >= 0 && destination.y() < rows);
     }
 }

@@ -1,4 +1,4 @@
-package by.hellbee.map;
+package by.hellbee.map.util;
 
 public record SpawnConfig(
         int predatorPercent,

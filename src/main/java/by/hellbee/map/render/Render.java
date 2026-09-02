@@ -1,7 +1,9 @@
-package by.hellbee.map;
+package by.hellbee.map.render;
 
-import by.hellbee.model.Sprite;
+import by.hellbee.map.Cell;
+import by.hellbee.map.Map;
 import by.hellbee.model.core.Entity;
+import by.hellbee.model.factory.Sprite;
 
 public class Render implements RendererService {
 
