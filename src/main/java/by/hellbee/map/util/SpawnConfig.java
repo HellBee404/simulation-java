@@ -1,5 +1,6 @@
 package by.hellbee.map.util;
 
+// TODO поиграться с балансом
 public record SpawnConfig(
         int predatorPercent,
         int herbivorePercent,

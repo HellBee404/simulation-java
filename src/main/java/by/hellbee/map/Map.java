@@ -42,18 +42,43 @@ public class Map {
         removeEntity(from);
         setEntity(to, entity);
 
-        if (getEntityOnCell(to).equals(entity)) {
-            System.out.println("Сущность " + entity + " успешно передвинулась из клетки " + from + " на клетку " + to);
+    }
+
+    public List<Cell> getWalkableNeighbors(Cell current) {
+        var neighbours = getNeighbours(current);
+        var walkableNeighbors = new ArrayList<Cell>();
+        for (Cell neighbour : neighbours) {
+            if (isWalkable(current, neighbour)) {
+                walkableNeighbors.add(neighbour);
+            }
         }
+        return walkableNeighbors;
     }
 
-    // TODO написать метод getWalkableNeighborCells(Cell from) для нахождения валидных соседей для алгоритма поиска пути
-    public Cell getTargetCell(Cell currentCell) {
-        return null;
+    public List<Cell> getNeighbours(Cell current) {
+        List<Cell> neighbours = new ArrayList<>();
+
+        Cell leftNeighbour = new Cell(current.x() - 1, current.y());
+        if (isWithin(leftNeighbour)) {
+            neighbours.add(leftNeighbour);
+        }
+        Cell rightNeighbour = new Cell(current.x() + 1, current.y());
+        if (isWithin(rightNeighbour)) {
+            neighbours.add(rightNeighbour);
+        }
+        Cell topNeighbour = new Cell(current.x(), current.y() - 1);
+        if (isWithin(topNeighbour)) {
+            neighbours.add(topNeighbour);
+        }
+        Cell bottomNeighbour = new Cell(current.x(), current.y() + 1);
+        if (isWithin(bottomNeighbour)) {
+            neighbours.add(bottomNeighbour);
+        }
+        return neighbours;
     }
 
-    public List<Entity> getEntities() {
-        return new ArrayList<>(entities.values());
+    public HashMap<Cell, Entity> getEntitiesMap() {
+        return new HashMap<>(entities);
     }
 
     public void setEntity(Cell cell, Entity entity) {

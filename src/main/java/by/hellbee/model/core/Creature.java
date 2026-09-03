@@ -5,7 +5,9 @@ import by.hellbee.map.Map;
 import by.hellbee.model.core.creature.Herbivore;
 import by.hellbee.model.core.creature.Predator;
 import by.hellbee.model.core.entity.Grass;
+import by.hellbee.service.PathfinderService;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class Creature extends Entity {
@@ -22,38 +24,42 @@ public abstract class Creature extends Entity {
         this.resetMoveCount();
     }
 
-    protected void makeMove(Map map, Cell currentCell) {
+    public void makeMove(Map map, Cell currentCell, PathfinderService pathfinderService) {
         if (!this.hasMoves()) {
             throw new IllegalStateException("Существо " + map.getEntityOnCell(currentCell) + " не имеет ходов");
         }
 
         while (this.hasMoves()) {
 
-            var walkableNeighbor = map.getTargetCell(currentCell);
+            Cell nextStep = pathfinderService.findNextStep(map, currentCell, this.getTargetType());
+
+            if (nextStep == null) {
+                break;
+            }
 
             Entity currentEntity = map.getEntityOnCell(currentCell);
 
             if (currentEntity instanceof Herbivore herbivore
-                    && map.getEntityOnCell(walkableNeighbor) instanceof Grass) {
-                herbivore.eatResource(map, currentCell, walkableNeighbor);
-                currentCell = walkableNeighbor;
+                    && map.getEntityOnCell(nextStep) instanceof Grass) {
+                herbivore.eatResource(map, currentCell, nextStep);
+                currentCell = nextStep;
 
                 this.decreaseMoves();
             } else if (currentEntity instanceof Predator predator
-                    && map.getEntityOnCell(walkableNeighbor) instanceof Herbivore) {
-                predator.attackHerbivore(map, currentCell, walkableNeighbor);
+                    && map.getEntityOnCell(nextStep) instanceof Herbivore) {
+                predator.attackHerbivore(map, currentCell, nextStep);
 
-                if (map.getEntityOnCell(walkableNeighbor) == predator) {
-                    currentCell = walkableNeighbor;
+                if (map.getEntityOnCell(nextStep) == predator) {
+                    currentCell = nextStep;
 
                     this.decreaseMoves();
                     continue;
                 }
 
                 this.decreaseMoves();
-            } else if (map.isCellEmpty(walkableNeighbor)) {
-                map.moveEntity(currentCell, walkableNeighbor);
-                currentCell = walkableNeighbor;
+            } else if (map.isCellEmpty(nextStep)) {
+                map.moveEntity(currentCell, nextStep);
+                currentCell = nextStep;
 
                 this.decreaseMoves();
             } else {
@@ -63,16 +69,7 @@ public abstract class Creature extends Entity {
         }
     }
 
-    // for debug
-    @Override
-    public String toString() {
-        return "Creature{" +
-                this.getSprite() +
-                ", speed=" + speed +
-                ", health=" + health +
-                ", moveCount=" + moveCount +
-                '}';
-    }
+    public abstract Class<? extends Entity> getTargetType();
 
     public void resetMoveCount() {
         this.moveCount = ThreadLocalRandom.current().nextInt(1, this.speed + 1);
@@ -96,5 +93,25 @@ public abstract class Creature extends Entity {
 
     public int getHealth() {
         return health;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public int getMoveCount() {
+        return moveCount;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Creature creature = (Creature) o;
+        return getSpeed() == creature.getSpeed() && getHealth() == creature.getHealth() && getMaxHealth() == creature.getMaxHealth() && getMoveCount() == creature.getMoveCount();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getSpeed(), getHealth(), getMaxHealth(), getMoveCount());
     }
 }

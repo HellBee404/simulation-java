@@ -7,8 +7,11 @@ import by.hellbee.model.factory.Sprite;
 
 public class Render implements RendererService {
 
+    // TODO переделать рендер, чтобы ничего не мерцало при выводе
     @Override
     public void render(Map map) {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
         for (int i = 0; i < map.getColumns(); i++) {
             for (int j = 0; j < map.getRows(); j++) {
                 Cell cell = new Cell(i, j);

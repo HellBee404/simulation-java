@@ -3,6 +3,7 @@ package by.hellbee.model.core.creature;
 import by.hellbee.map.Cell;
 import by.hellbee.map.Map;
 import by.hellbee.model.core.Creature;
+import by.hellbee.model.core.Entity;
 import by.hellbee.model.factory.Sprite;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -14,7 +15,6 @@ public class Predator extends Creature {
         super(speed, health);
         this.damage = damage;
     }
-
 
     public void attackHerbivore(Map map, Cell currentCell, Cell targetCell) {
         var neighborEntity = map.getEntityOnCell(targetCell);
@@ -32,6 +32,11 @@ public class Predator extends Creature {
                 super.setHealth(Math.min(super.getHealth() + heal, super.getMaxHealth()));
             }
         }
+    }
+
+    @Override
+    public Class<? extends Entity> getTargetType() {
+        return Herbivore.class;
     }
 
     @Override

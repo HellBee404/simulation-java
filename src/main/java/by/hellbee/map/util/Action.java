@@ -2,9 +2,14 @@ package by.hellbee.map.util;
 
 import by.hellbee.map.Cell;
 import by.hellbee.map.Map;
+import by.hellbee.model.core.Creature;
 import by.hellbee.model.core.Entity;
+import by.hellbee.model.core.entity.Grass;
 import by.hellbee.model.factory.EntityFactory;
+import by.hellbee.service.PathfinderService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 // todo подумать о том, чтобы сделать это в многопоточке
@@ -15,11 +20,20 @@ public class Action {
     private final int rows = 30;
     private final int columns = 15;
 
+    private long turnCounter = 0;
+
     private final Map map = new Map(rows, columns);
     private final EntityFactory entityFactory = new EntityFactory();
+    private final PathfinderService pathfinderService;
+
+    private final SpawnConfig config;
+
+    public Action(PathfinderService pathfinderService, SpawnConfig config) {
+        this.pathfinderService = pathfinderService;
+        this.config = config;
+    }
 
     public void initActions() {
-
         for (int x = 0; x < columns; x++) {
             for (int y = 0; y < rows; y++) {
                 Cell cell = new Cell(x, y);
@@ -31,9 +45,59 @@ public class Action {
         }
     }
 
-    public Entity placeRandomEntity() {
+    public void turnActions() {
+        turnCounter++;
+        List<Cell> creatureCells = new ArrayList<>();
+
+        for (java.util.Map.Entry<Cell, Entity> entry : map.getEntitiesMap().entrySet()) {
+            if (entry.getValue() instanceof Creature) {
+                creatureCells.add(entry.getKey());
+            }
+        }
+
+        for (Cell creatureCell : creatureCells) {
+            var entity = map.getEntityOnCell(creatureCell);
+            if (entity instanceof Creature creature) {
+                creature.resetMoveCount();
+                creature.makeMove(map, creatureCell, pathfinderService);
+            }
+        }
+        if (turnCounter % 3 == 0) {
+            spawnMoreGrassIfNeeded();
+        }
+    }
+
+    private void spawnMoreGrassIfNeeded() {
+        int spawnThresholdFactor = 2;
+        long totalCells = columns * rows;
+        long emptyCells = totalCells - map.getEntitiesMap().size();
+
+        long targetGrassCount = (totalCells * config.grassPercent()) / 100;
+        long triggerThreshold = targetGrassCount / spawnThresholdFactor;
+
+        long currentGrassCount = map.getEntitiesMap().values().stream()
+                .filter(entity -> entity instanceof Grass)
+                .count();
+
+        if (currentGrassCount < triggerThreshold) {
+            long grassToSpawn = targetGrassCount - currentGrassCount;
+
+            long limit = Math.min(grassToSpawn, emptyCells);
+            while (limit > 0) {
+                int randomX = random.nextInt(columns);
+                int randomY = random.nextInt(rows);
+                Cell cell = new Cell(randomX, randomY);
+
+                if (map.isCellEmpty(cell)) {
+                    map.setEntity(cell, entityFactory.createGrass());
+                    limit--;
+                }
+            }
+        }
+    }
+
+    private Entity placeRandomEntity() {
         int chance = random.nextInt(100);
-        SpawnConfig config = SpawnConfig.DEFAULT;
 
         int currentThreshold = config.predatorPercent();
         if (chance < currentThreshold) {
