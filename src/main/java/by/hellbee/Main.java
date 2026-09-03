@@ -33,6 +33,7 @@ public class Main {
                     default -> System.out.println("Введите корректный вариант");
                 }
             }
+            System.out.println("Симуляция завершена! Количество действий, совершенных симуляцией: " + action.getTurnCounter());
         }
     }
 }

@@ -4,6 +4,8 @@ import by.hellbee.map.Cell;
 import by.hellbee.map.Map;
 import by.hellbee.model.core.Creature;
 import by.hellbee.model.core.Entity;
+import by.hellbee.model.core.creature.Herbivore;
+import by.hellbee.model.core.creature.Predator;
 import by.hellbee.model.core.entity.Grass;
 import by.hellbee.model.factory.EntityFactory;
 import by.hellbee.service.PathfinderService;
@@ -17,10 +19,11 @@ public class Action {
 
     private final Random random = new Random();
 
-    private final int rows = 30;
-    private final int columns = 15;
+    private final int rows = 40;
+    private final int columns = 20;
 
     private long turnCounter = 0;
+    private static final int REPRODUCTION_THRESHOLD = 3;
 
     private final Map map = new Map(rows, columns);
     private final EntityFactory entityFactory = new EntityFactory();
@@ -58,12 +61,41 @@ public class Action {
         for (Cell creatureCell : creatureCells) {
             var entity = map.getEntityOnCell(creatureCell);
             if (entity instanceof Creature creature) {
+                if (creature.getEatenResources() >= REPRODUCTION_THRESHOLD) {
+                    reproductionCreature(creatureCell);
+                    creature.resetEaterResources();
+                    creature.spendMoveForReproduction();
+                }
+
                 creature.resetMoveCount();
                 creature.makeMove(map, creatureCell, pathfinderService);
             }
         }
+
+        // TODO вынести в конфиг
         if (turnCounter % 3 == 0) {
             spawnMoreGrassIfNeeded();
+        }
+    }
+
+    private void reproductionCreature(Cell parentCellEntity) {
+        var neighbours = map.getWalkableNeighbors(parentCellEntity);
+        var reproductiveNeighbours = neighbours.stream()
+                .filter(cell -> map.getEntityOnCell(cell) == null)
+                .toList();
+
+        if (!reproductiveNeighbours.isEmpty()) {
+            int randomCell = random.nextInt(reproductiveNeighbours.size());
+            Cell toReproductionCell = reproductiveNeighbours.get(randomCell);
+            if (map.isCellEmpty(toReproductionCell)) {
+                Entity parentEntity = map.getEntityOnCell(parentCellEntity);
+                if (parentEntity instanceof Herbivore) {
+                    map.setEntity(toReproductionCell, entityFactory.createHerbivore());
+                }
+                if (parentEntity instanceof Predator) {
+                    map.setEntity(toReproductionCell, entityFactory.createPredator());
+                }
+            }
         }
     }
 
@@ -125,6 +157,10 @@ public class Action {
         } else {
             return null;
         }
+    }
+
+    public long getTurnCounter() {
+        return turnCounter;
     }
 
     public Map getMap() {

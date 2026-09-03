@@ -11,6 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Herbivore extends Creature {
 
+
     public Herbivore(int speed, int health) {
         super(speed, health);
     }
@@ -24,6 +25,7 @@ public class Herbivore extends Creature {
             map.moveEntity(currentCell, targetCell);
 
             super.setHealth(Math.min(super.getHealth() + heal, super.getMaxHealth()));
+            super.incrementEatenResource();
         }
     }
 

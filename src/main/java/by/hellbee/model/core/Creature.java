@@ -16,6 +16,7 @@ public abstract class Creature extends Entity {
     private int health;
     private final int maxHealth;
     private int moveCount = 0;
+    private int eatenResources = 0;
 
     public Creature(int speed, int health) {
         this.speed = speed;
@@ -69,7 +70,17 @@ public abstract class Creature extends Entity {
         }
     }
 
+    public void spendMoveForReproduction() {
+        if (this.hasMoves()) {
+            this.decreaseMoves();
+        }
+    }
+
     public abstract Class<? extends Entity> getTargetType();
+
+    public void incrementEatenResource() {
+        this.eatenResources++;
+    }
 
     public void resetMoveCount() {
         this.moveCount = ThreadLocalRandom.current().nextInt(1, this.speed + 1);
@@ -113,5 +124,13 @@ public abstract class Creature extends Entity {
     @Override
     public int hashCode() {
         return Objects.hash(getSpeed(), getHealth(), getMaxHealth(), getMoveCount());
+    }
+
+    public long getEatenResources() {
+        return eatenResources;
+    }
+
+    public void resetEaterResources() {
+        this.eatenResources = 0;
     }
 }

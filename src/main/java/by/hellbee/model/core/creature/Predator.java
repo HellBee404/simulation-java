@@ -30,6 +30,7 @@ public class Predator extends Creature {
                 map.moveEntity(currentCell, targetCell);
 
                 super.setHealth(Math.min(super.getHealth() + heal, super.getMaxHealth()));
+                super.incrementEatenResource();
             }
         }
     }
