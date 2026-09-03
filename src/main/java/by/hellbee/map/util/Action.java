@@ -23,7 +23,7 @@ public class Action {
     private final int columns = 20;
 
     private long turnCounter = 0;
-    private static final int REPRODUCTION_THRESHOLD = 3;
+    private static final int REPRODUCTION_THRESHOLD = 5;
 
     private final Map map = new Map(rows, columns);
     private final EntityFactory entityFactory = new EntityFactory();
@@ -61,14 +61,24 @@ public class Action {
         for (Cell creatureCell : creatureCells) {
             var entity = map.getEntityOnCell(creatureCell);
             if (entity instanceof Creature creature) {
-                if (creature.getEatenResources() >= REPRODUCTION_THRESHOLD) {
+
+                if (creature.isDead()) {
+                    map.setEntity(creatureCell, null);
+                    continue;
+                }
+
+                if (creature.getReproductionPoints() >= REPRODUCTION_THRESHOLD) {
                     reproductionCreature(creatureCell);
-                    creature.resetEaterResources();
+                    creature.resetReproductionPoints();
                     creature.spendMoveForReproduction();
                 }
 
                 creature.resetMoveCount();
-                creature.makeMove(map, creatureCell, pathfinderService);
+                Cell finalCell = creature.makeMove(map, creatureCell, pathfinderService);
+                creature.decreaseHunger();
+                if (creature.isDead()) {
+                    map.setEntity(finalCell, null);
+                }
             }
         }
 
@@ -81,7 +91,7 @@ public class Action {
     private void reproductionCreature(Cell parentCellEntity) {
         var neighbours = map.getWalkableNeighbors(parentCellEntity);
         var reproductiveNeighbours = neighbours.stream()
-                .filter(cell -> map.getEntityOnCell(cell) == null)
+                .filter(map::isCellEmpty)
                 .toList();
 
         if (!reproductiveNeighbours.isEmpty()) {

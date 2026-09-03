@@ -25,7 +25,7 @@ public class Herbivore extends Creature {
             map.moveEntity(currentCell, targetCell);
 
             super.setHealth(Math.min(super.getHealth() + heal, super.getMaxHealth()));
-            super.incrementEatenResource();
+            super.addReproductionPoints();
         }
     }
 

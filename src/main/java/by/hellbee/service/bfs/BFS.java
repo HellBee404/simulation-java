@@ -29,19 +29,25 @@ public class BFS implements PathfinderService {
                     && targetEntity.isInstance(map.getEntityOnCell(currentCell))
                     && !currentCell.equals(startCell)) {
 
+                List<Cell> path = new ArrayList<>();
                 Cell step = currentCell;
-                while (!pathMemorizer.get(step).equals(startCell)) {
+                while (step != null && !step.equals(startCell)) {
+                    path.add(step);
                     step = pathMemorizer.get(step);
                 }
-                return step;
+                if (!path.isEmpty()) {
+                    return path.getLast();
+                }
 
             }
 
-            List<Cell> neighbours = map.getWalkableNeighbors(currentCell);
+            List<Cell> neighbours = map.getNeighbours(currentCell);
+
             for (Cell neighbour : neighbours) {
                 if (!visitedCells.contains(neighbour)) {
-                    if (map.getEntityOnCell(neighbour) == null
-                            || targetEntity.isInstance(map.getEntityOnCell(neighbour))) {
+                    Entity entity = map.getEntityOnCell(neighbour);
+
+                    if (entity == null || targetEntity.isInstance(entity) || neighbour.equals(startCell)) {
                         visitedCells.add(neighbour);
                         pathMemorizer.put(neighbour, currentCell);
                         nodes.offer(neighbour);

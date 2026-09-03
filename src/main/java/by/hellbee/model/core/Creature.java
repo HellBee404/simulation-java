@@ -7,6 +7,7 @@ import by.hellbee.model.core.creature.Predator;
 import by.hellbee.model.core.entity.Grass;
 import by.hellbee.service.PathfinderService;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -16,7 +17,12 @@ public abstract class Creature extends Entity {
     private int health;
     private final int maxHealth;
     private int moveCount = 0;
-    private int eatenResources = 0;
+
+    // TODO вынести все конфиги в отдельный файл
+    private int reproductionPoints = 0;
+    private static final int REPRODUCTION_POINTS_LIMIT = 3;
+    private int hunger = 5;
+    private static final int MAX_SATURATION = 10;
 
     public Creature(int speed, int health) {
         this.speed = speed;
@@ -25,7 +31,7 @@ public abstract class Creature extends Entity {
         this.resetMoveCount();
     }
 
-    public void makeMove(Map map, Cell currentCell, PathfinderService pathfinderService) {
+    public Cell makeMove(Map map, Cell currentCell, PathfinderService pathfinderService) {
         if (!this.hasMoves()) {
             throw new IllegalStateException("Существо " + map.getEntityOnCell(currentCell) + " не имеет ходов");
         }
@@ -35,7 +41,17 @@ public abstract class Creature extends Entity {
             Cell nextStep = pathfinderService.findNextStep(map, currentCell, this.getTargetType());
 
             if (nextStep == null) {
-                break;
+                List<Cell> emptyNeighbors = map.getNeighbours(currentCell).stream()
+                        .filter(map::isCellEmpty)
+                        .toList();
+
+                if (!emptyNeighbors.isEmpty()) {
+                    Cell randomNeighbor = emptyNeighbors.get(ThreadLocalRandom.current().nextInt(emptyNeighbors.size()));
+                    map.moveEntity(currentCell, randomNeighbor);
+                    currentCell = randomNeighbor;
+                }
+                this.decreaseMoves();
+                continue;
             }
 
             Entity currentEntity = map.getEntityOnCell(currentCell);
@@ -68,6 +84,7 @@ public abstract class Creature extends Entity {
             }
 
         }
+        return currentCell;
     }
 
     public void spendMoveForReproduction() {
@@ -78,8 +95,38 @@ public abstract class Creature extends Entity {
 
     public abstract Class<? extends Entity> getTargetType();
 
-    public void incrementEatenResource() {
-        this.eatenResources++;
+    public boolean isDead() {
+        return this.health <= 0;
+    }
+
+    public void increaseHunger(int amount) {
+        this.hunger = Math.min(this.hunger + amount, MAX_SATURATION);
+    }
+
+    public boolean isHungry() {
+        return this.hunger < MAX_SATURATION;
+    }
+
+    public void decreaseHunger() {
+        if (this.hunger > 0) {
+            this.hunger--;
+        } else {
+            decreaseHealth();
+        }
+    }
+
+    private void decreaseHealth() {
+        if (this.health <= 0) {
+            return;
+        }
+        if (this.hunger <= 0) {
+            this.health--;
+        }
+    }
+
+    public void addReproductionPoints() {
+        int randomPoint = ThreadLocalRandom.current().nextInt(1, REPRODUCTION_POINTS_LIMIT + 1);
+        this.reproductionPoints += randomPoint;
     }
 
     public void resetMoveCount() {
@@ -126,11 +173,11 @@ public abstract class Creature extends Entity {
         return Objects.hash(getSpeed(), getHealth(), getMaxHealth(), getMoveCount());
     }
 
-    public long getEatenResources() {
-        return eatenResources;
+    public long getReproductionPoints() {
+        return reproductionPoints;
     }
 
-    public void resetEaterResources() {
-        this.eatenResources = 0;
+    public void resetReproductionPoints() {
+        this.reproductionPoints = 0;
     }
 }
