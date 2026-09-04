@@ -6,6 +6,6 @@ import by.hellbee.model.factory.Sprite;
 public class Grass extends Entity {
     @Override
     public String getSprite() {
-        return Sprite.GRASS;
+        return Sprite.HERBIVORE_RESOURCE;
     }
 }

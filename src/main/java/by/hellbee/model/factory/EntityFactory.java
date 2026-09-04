@@ -1,5 +1,6 @@
 package by.hellbee.model.factory;
 
+import by.hellbee.config.ConfigLoader;
 import by.hellbee.model.core.creature.Herbivore;
 import by.hellbee.model.core.creature.Predator;
 import by.hellbee.model.core.entity.Grass;
@@ -11,19 +12,27 @@ import java.util.Random;
 public class EntityFactory {
     private final Random random = new Random();
 
-    // TODO поиграться с балансом
     public Predator createPredator() {
-        int speed = random.nextInt(3, 5); // speed = 3-4
-        int health = random.nextInt(2, 5); // health = 2-4
-        int damage = random.nextInt(1, 4); // damage = 1-3
+        int speed = random.nextInt(
+                ConfigLoader.getInt("entity.predator.speed.min", 3),
+                ConfigLoader.getInt("entity.predator.speed.max", 5));
+        int health = random.nextInt(
+                ConfigLoader.getInt("entity.predator.health.min", 2),
+                ConfigLoader.getInt("entity.predator.health.max", 5));
+        int damage = random.nextInt(
+                ConfigLoader.getInt("entity.predator.damage.min", 1),
+                ConfigLoader.getInt("entity.predator.damage.max", 4));
 
         return new Predator(speed, health, damage);
     }
 
-    // TODO поиграться с балансом
     public Herbivore createHerbivore() {
-        int speed = random.nextInt(1, 3); // speed = 1-2
-        int health = random.nextInt(5, 9); // health = 5-8
+        int speed = random.nextInt(
+                ConfigLoader.getInt("entity.herbivore.speed.min", 1),
+                ConfigLoader.getInt("entity.herbivore.speed.max", 3));
+        int health = random.nextInt(
+                ConfigLoader.getInt("entity.herbivore.health.min", 5),
+                ConfigLoader.getInt("entity.herbivore.health.max", 9));
 
         return new Herbivore(speed, health);
     }

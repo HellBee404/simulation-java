@@ -7,7 +7,6 @@ import by.hellbee.model.factory.Sprite;
 
 public class Render implements RendererService {
 
-    // TODO переделать рендер, чтобы ничего не мерцало при выводе
     @Override
     public void render(Map map) {
         System.out.print("\033[H\033[2J");

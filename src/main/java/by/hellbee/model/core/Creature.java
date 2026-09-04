@@ -1,5 +1,6 @@
 package by.hellbee.model.core;
 
+import by.hellbee.config.ConfigLoader;
 import by.hellbee.map.Cell;
 import by.hellbee.map.Map;
 import by.hellbee.model.core.creature.Herbivore;
@@ -18,11 +19,11 @@ public abstract class Creature extends Entity {
     private final int maxHealth;
     private int moveCount = 0;
 
-    // TODO вынести все конфиги в отдельный файл
+    protected static final int REPRODUCTION_POINTS_LIMIT = ConfigLoader.getInt("creature.reproduction.pointsLimit", 3);
+    protected static final int MAX_SATURATION = ConfigLoader.getInt("creature.hunger.maxSaturation", 10);
+
     private int reproductionPoints = 0;
-    private static final int REPRODUCTION_POINTS_LIMIT = 3;
-    private int hunger = 5;
-    private static final int MAX_SATURATION = 10;
+    private int hunger = ConfigLoader.getInt("creature.hunger.initial", 5);
 
     public Creature(int speed, int health) {
         this.speed = speed;

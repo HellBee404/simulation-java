@@ -11,7 +11,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Herbivore extends Creature {
 
-
     public Herbivore(int speed, int health) {
         super(speed, health);
     }

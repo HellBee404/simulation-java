@@ -1,5 +1,6 @@
 package by.hellbee.map.util;
 
+import by.hellbee.config.ConfigLoader;
 import by.hellbee.map.Cell;
 import by.hellbee.map.Map;
 import by.hellbee.model.core.Creature;
@@ -9,27 +10,31 @@ import by.hellbee.model.core.creature.Predator;
 import by.hellbee.model.core.entity.Grass;
 import by.hellbee.model.factory.EntityFactory;
 import by.hellbee.service.PathfinderService;
+import by.hellbee.service.bfs.BFS;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-// todo подумать о том, чтобы сделать это в многопоточке
 public class Action {
 
     private final Random random = new Random();
 
-    private final int rows = 40;
-    private final int columns = 20;
+    private final int rows = ConfigLoader.getInt("map.rows", 30);
+    private final int columns = ConfigLoader.getInt("map.columns", 15);
 
     private long turnCounter = 0;
-    private static final int REPRODUCTION_THRESHOLD = 5;
+    private static final int REPRODUCTION_THRESHOLD = ConfigLoader.getInt("action.reproduction.threshold", 4);
 
     private final Map map = new Map(rows, columns);
     private final EntityFactory entityFactory = new EntityFactory();
     private final PathfinderService pathfinderService;
-
     private final SpawnConfig config;
+
+    public Action() {
+        this.pathfinderService = resolvePathfinder();
+        this.config = resolveSpawnConfig();
+    }
 
     public Action(PathfinderService pathfinderService, SpawnConfig config) {
         this.pathfinderService = pathfinderService;
@@ -82,7 +87,6 @@ public class Action {
             }
         }
 
-        // TODO вынести в конфиг
         if (turnCounter % 3 == 0) {
             spawnMoreGrassIfNeeded();
         }
@@ -114,7 +118,7 @@ public class Action {
         long totalCells = columns * rows;
         long emptyCells = totalCells - map.getEntitiesMap().size();
 
-        long targetGrassCount = (totalCells * config.grassPercent()) / 100;
+        long targetGrassCount = (totalCells * config.herbivoreResourcePercent()) / 100;
         long triggerThreshold = targetGrassCount / spawnThresholdFactor;
 
         long currentGrassCount = map.getEntitiesMap().values().stream()
@@ -151,7 +155,7 @@ public class Action {
             return entityFactory.createHerbivore();
         }
 
-        currentThreshold += config.grassPercent();
+        currentThreshold += config.herbivoreResourcePercent();
         if (chance < currentThreshold) {
             return entityFactory.createGrass();
         }
@@ -167,6 +171,22 @@ public class Action {
         } else {
             return null;
         }
+    }
+
+    private PathfinderService resolvePathfinder() {
+        String algo = ConfigLoader.getString("pathfinder.algorithm", "bfs");
+        return switch (algo.toLowerCase()) {
+            case "bfs" -> new BFS();
+            default -> new BFS();
+        };
+    }
+
+    private SpawnConfig resolveSpawnConfig() {
+        String preset = ConfigLoader.getString("spawn.preset", "default");
+        return switch (preset.toLowerCase()) {
+            case "default" -> SpawnConfig.DEFAULT;
+            default -> SpawnConfig.DEFAULT;
+        };
     }
 
     public long getTurnCounter() {
